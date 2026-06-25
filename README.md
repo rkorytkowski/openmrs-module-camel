@@ -78,4 +78,4 @@ public class MySampleRoute extends RouteBuilder {
     }
 }
 ```
-For a more complete example see `PatientSummaryRoute` and `PatientSummaryIntegrationTest` in the api/src/test/java dir.
+For a more complete example see [`PatientSummaryRoute`](https://github.com/openmrs/openmrs-module-camel/blob/main/api/src/test/java/org/openmrs/module/route/PatientSummaryRoute.java) and [`PatientSummaryRouteIntegrationTest`](https://github.com/openmrs/openmrs-module-camel/blob/main/api/src/test/java/org/openmrs/module/route/PatientSummaryRouteIntegrationTest.java) in the api/src/test/java dir.

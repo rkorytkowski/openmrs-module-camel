@@ -45,7 +45,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
 @Testcontainers
-public class PatientSummaryIntegrationTest extends BaseModuleContextSensitiveTest {
+public class PatientSummaryRouteIntegrationTest extends BaseModuleContextSensitiveTest {
 	
 	// 1. Define the Artemis Docker Container so we don't rely in tests on e.g. openmrs-module-artemis.
 	@Container
