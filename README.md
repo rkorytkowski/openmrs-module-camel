@@ -10,9 +10,13 @@ with external systems using standard Enterprise Integration Patterns (EIP).
 By default, it automatically discovers any Spring beans extending Camel's `RouteBuilder` and manages their lifecycle 
 alongside the OpenMRS application context.
 
+Requirements
+------------
+The module requires OpenMRS Core 2.9+ and Java 17+.
+
 Building from Source
 --------------------
-You will need to have Java 1.8+ and Maven 2.x+ installed.  Use the command 'mvn package' to 
+You will need to have Java 17+ and Maven 2.x+ installed.  Use the command 'mvn package' to 
 compile and package the module.  The .omod file will be in the omod/target folder.
 
 Installation

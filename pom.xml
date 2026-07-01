@@ -25,8 +25,8 @@
 
 	<properties>
 		<openmrsPlatformVersion>2.9.0-SNAPSHOT</openmrsPlatformVersion>
-		<javaCompilerSource>1.8</javaCompilerSource>
-		<javaCompilerTarget>1.8</javaCompilerTarget>
+		<javaCompilerSource>17</javaCompilerSource>
+		<javaCompilerTarget>17</javaCompilerTarget>
 		<camelVersion>3.22.4</camelVersion> <!-- Upgrade to 4.x for platform 3.0.x -->
 		<artemisVersion>2.54.0</artemisVersion>
 		<hawtioVersion>3.0.2</hawtioVersion> <!-- Upgrade to 5.x for platform 3.0.x -->
