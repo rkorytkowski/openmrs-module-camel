@@ -81,3 +81,8 @@ nb-configuration.xml
 ##############################
 .DS_Store
 
+##############################
+## Camel Module
+##############################
+# Embedded broker runtime data and temp files
+api/data/

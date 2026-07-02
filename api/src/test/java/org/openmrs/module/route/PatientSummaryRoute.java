@@ -76,13 +76,18 @@ public class PatientSummaryRoute extends RouteBuilder {
 			String personId;
 			Map<String, Object> newState = event.getNewState();
 			
-			if (event.getEntityType().isAssignableFrom(Person.class)) {
+			if (Person.class.isAssignableFrom(event.getEntityType())) {
 				personId = String.valueOf(event.getPrimaryKey().get("person_id"));
-			} else if (event.getEntityType().isAssignableFrom(PersonName.class)) {
+			} else if (PersonName.class.isAssignableFrom(event.getEntityType())) {
 				// Extract the foreign key directly from the Debezium new state payload.
 				// OpenMRS database uses "person_id" as the column name in child tables.
 				personId = String.valueOf(newState.get("person_id"));
-			} else if (event.getEntityType().isAssignableFrom(PersonAddress.class)) {
+			} else if (PersonAddress.class.isAssignableFrom(event.getEntityType())) {
+				personId = String.valueOf(newState.get("person_id"));
+			} else if (PatientIdentifier.class.isAssignableFrom(event.getEntityType())) {
+				// PatientIdentifier has patient_id foreign key
+				personId = newState.get("patient_id") != null ? String.valueOf(newState.get("patient_id")) : null;
+			} else if (PersonAttribute.class.isAssignableFrom(event.getEntityType())) {
 				personId = String.valueOf(newState.get("person_id"));
 			} else {
 				personId = null;
