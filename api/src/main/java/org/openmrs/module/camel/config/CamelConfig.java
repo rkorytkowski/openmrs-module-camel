@@ -30,8 +30,8 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.jms.ConnectionFactory;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -58,7 +58,7 @@ public class CamelConfig {
 		return camelContext.createProducerTemplate();
 	}
 	
-	@Bean("camel.jms")
+	@Bean("jms")
 	public JmsComponent jms(@Autowired(required = false) ConnectionFactory connectionFactory) {
 		if (connectionFactory == null) {
 			return null;
@@ -69,7 +69,7 @@ public class CamelConfig {
 		return jmsComponent;
 	}
 	
-	@Bean("camel.elasticsearch")
+	@Bean("elasticsearch")
 	public ElasticsearchComponent elasticsearch(SessionFactory sessionFactory) {
 		// Extract the low-level Elasticsearch RestClient from the Hibernate Search backend safely
 		try {
@@ -85,10 +85,11 @@ public class CamelConfig {
 		}
 	}
 	
-	@Bean("camel.hawtio")
+	@Bean("hawtio")
 	public Main hawtio(@Value("${camel.hawtio.enabled:false}") boolean hawtioEnabled,
-	        @Value("${camel.hawtio.username:admin}") String username,
-	        @Value("${camel.hawtio.password:Admin123}") String password, @Value("${camel.hawtio.port:10001}") int port)
+	        @Value("${camel.hawtio.jaas.overwrite:true}") boolean jaasOverwrite,
+	        @Value("${camel.hawtio.username:admin}") String username, @Value("${camel.hawtio.password:}") String password,
+	        @Value("${camel.hawtio.port:10001}") int port, @Value("${camel.hawtio.host:127.0.0.1}") String host)
 	        throws Exception {
 		
 		if (!hawtioEnabled) {
@@ -100,16 +101,17 @@ public class CamelConfig {
 		System.setProperty("hawtio.realm", "hawtio");
 		System.setProperty("hawtio.roles", "admin");
 		
-		// Create a temporary JAAS config file
-		File loginConfFile = File.createTempFile("hawtio-login-", ".conf");
-		loginConfFile.deleteOnExit();
-		try (FileWriter writer = new FileWriter(loginConfFile)) {
-			writer.write("hawtio {\n" + "  org.openmrs.module.camel.config.SimpleLoginModule required\n" + "  username=\""
-			        + username + "\"\n" + "  password=\"" + password + "\";\n" + "};\n");
+		if (jaasOverwrite) {
+			if (password == null || password.isEmpty()) {
+				throw new IllegalArgumentException("camel.hawtio.password property cannot be null or empty");
+			}
+			
+			System.setProperty("camel.hawtio.username", username);
+			System.setProperty("camel.hawtio.password", password);
+			
+			URL loginConfUrl = getClass().getResource("/hawtio-login.conf");
+			System.setProperty("java.security.auth.login.config", loginConfUrl.toString());
 		}
-		
-		// Point JAAS to our temporary config
-		System.setProperty("java.security.auth.login.config", loginConfFile.getAbsolutePath());
 		
 		String dataDir = OpenmrsUtil.getApplicationDataDirectory() + File.separator + "camel";
 		File dataDirFile = new File(dataDir);
@@ -139,6 +141,7 @@ public class CamelConfig {
 		main.setContextPath("/hawtio");
 		main.setPort(port); // Expose on a dedicated port to avoid conflicting with Tomcat/OpenMRS
 		main.run(false); // Run in non-blocking mode so OpenMRS continues to start up
+		// The embedded hawtio does not implement any stop logic. It will be only stopped when JVM is stopped.
 		return main;
 	}
 }

@@ -43,13 +43,14 @@ Configuration Properties
 ------------------------
 You can configure the behavior of the Camel module by adding the following properties to your `openmrs-runtime.properties` file:
 
-| Property | Default Value | Description |
-|----------|---------------|-------------|
-| `camel.autoDiscoverRoutes` | `true` | When true, automatically discovers and registers all Spring beans extending `RouteBuilder`. |
-| `camel.hawtio.enabled` | `false` | Enables the embedded Hawtio web console for visualizing and managing Camel routes. |
-| `camel.hawtio.port` | `10001` | The port the embedded Hawtio server will bind to. |
-| `camel.hawtio.username` | `admin` | The username required to log into the Hawtio console. |
-| `camel.hawtio.password` | `Admin123` | The password required to log into the Hawtio console. |
+| Property | Default Value | Description                                                                                                                                                                                                                |
+|----------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `camel.autoDiscoverRoutes` | `true` | When true, automatically discovers and registers all Spring beans extending `RouteBuilder`.                                                                                                                                |
+| `camel.hawtio.enabled` | `false` | Enables the embedded Hawtio web console for visualizing and managing Camel routes.                                                                                                                                         |
+| `camel.hawtio.port` | `10001` | The port the embedded Hawtio server will bind to.                                                                                                                                                                          |
+| `camel.hawtio.username` | `admin` | The username required to log into the Hawtio console.                                                                                                                                                                      |
+| `camel.hawtio.password` | `` | The password required to log into the Hawtio console. It must be specified when Hawtio and JAAS overwrite is enabled.                                                                                                      |
+| `camel.hawtio.jaas.overwrite` | `true` | When true, generates a temporary JAAS login config file and sets `java.security.auth.login.config` to point to it. Set to `false` if you are already managing JAAS configuration externally and do not want it overwritten. |
 
 Hawtio Web Console
 ------------------

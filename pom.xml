@@ -18,9 +18,9 @@
 	<url>https://wiki.openmrs.org/x/FQ4z</url>
 
 	<scm>
-		<connection>scm:git:git@github.com:openmrs/openmrs-module-debezium.git</connection>
-		<developerConnection>scm:git:git@github.com:openmrs/openmrs-module-debezium.git</developerConnection>
-		<url>https://github.com/openmrs/openmrs-module-debezium/</url>
+		<connection>scm:git:git@github.com:openmrs/openmrs-module-camel.git</connection>
+		<developerConnection>scm:git:git@github.com:openmrs/openmrs-module-camel.git</developerConnection>
+		<url>https://github.com/openmrs/openmrs-module-camel/</url>
 	</scm>
 
 	<properties>
@@ -249,15 +249,6 @@
 						<version>2.7.8</version> <!-- Forces resolution to a stable release -->
 					</dependency>
 				</dependencies>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-				<executions>
-					<execution>
-						<id>spotless-check</id>
-						<phase>none</phase> <!-- Unbinds the check from the Maven build lifecycle -->
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

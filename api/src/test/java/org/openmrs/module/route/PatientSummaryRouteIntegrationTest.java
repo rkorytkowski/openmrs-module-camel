@@ -22,7 +22,6 @@ import org.apache.camel.component.jms.JmsComponent;
 import org.apache.http.HttpHost;
 import org.awaitility.Awaitility;
 import org.elasticsearch.client.RestClient;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openmrs.Person;
@@ -105,18 +104,6 @@ public class PatientSummaryRouteIntegrationTest extends BaseModuleContextSensiti
 		// it is safe to add the routes to the Camel Context.
 		for (RouteBuilder route : routes) {
 			camelContext.addRoutes(route);
-		}
-		
-		if (!camelContext.isStarted()) {
-			camelContext.start();
-		}
-	}
-	
-	@AfterEach
-	public void teardown() {
-		// Gracefully shut down Camel routes BEFORE the Spring Context and DB are destroyed
-		if (camelContext != null && camelContext.isStarted()) {
-			camelContext.stop();
 		}
 	}
 	
