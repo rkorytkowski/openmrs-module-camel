@@ -9,13 +9,14 @@
  */
 package org.openmrs.module.camel.config;
 
-import io.hawt.embedded.Main;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.es.ElasticsearchComponent;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.spring.SpringCamelContext;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.elasticsearch.client.RestClient;
 import org.hibernate.SessionFactory;
 import org.hibernate.search.mapper.orm.Search;
@@ -29,12 +30,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.jms.ConnectionFactory;
+import javax.security.auth.login.AppConfigurationEntry;
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class CamelConfig {
@@ -85,9 +90,8 @@ public class CamelConfig {
 		}
 	}
 	
-	@Bean("hawtio")
-	public Main hawtio(@Value("${camel.hawtio.enabled:false}") boolean hawtioEnabled,
-	        @Value("${camel.hawtio.jaas.overwrite:true}") boolean jaasOverwrite,
+	@Bean(name = "hawtio", destroyMethod = "stop")
+	public Server hawtio(@Value("${camel.hawtio.enabled:false}") boolean hawtioEnabled,
 	        @Value("${camel.hawtio.username:admin}") String username, @Value("${camel.hawtio.password:}") String password,
 	        @Value("${camel.hawtio.port:10001}") int port, @Value("${camel.hawtio.host:127.0.0.1}") String host)
 	        throws Exception {
@@ -96,22 +100,41 @@ public class CamelConfig {
 			return null;
 		}
 		
+		if (password == null || password.isEmpty()) {
+			throw new IllegalArgumentException("camel.hawtio.password must be set when hawtio is enabled");
+		}
+		
 		// Enable authentication for embedded monitoring
 		System.setProperty("hawtio.authenticationEnabled", "true");
 		System.setProperty("hawtio.realm", "hawtio");
 		System.setProperty("hawtio.roles", "admin");
 		
-		if (jaasOverwrite) {
-			if (password == null || password.isEmpty()) {
-				throw new IllegalArgumentException("camel.hawtio.password property cannot be null or empty");
-			}
-			
-			System.setProperty("camel.hawtio.username", username);
-			System.setProperty("camel.hawtio.password", password);
-			
-			URL loginConfUrl = getClass().getResource("/hawtio-login.conf");
-			System.setProperty("java.security.auth.login.config", loginConfUrl.toString());
+		// Install a delegating JAAS Configuration that handles only the "hawtio" realm
+		// and delegates every other realm to whatever was configured before. This avoids
+		// writing credentials to JVM system properties and does not overwrite existing
+		// JAAS configurations (e.g. from openmrs-module-artemis).
+		javax.security.auth.login.Configuration existing;
+		try {
+			existing = javax.security.auth.login.Configuration.getConfiguration();
 		}
+		catch (Exception e) {
+			existing = null;
+		}
+		final javax.security.auth.login.Configuration delegate = existing;
+		final Map<String, Object> loginOptions = new HashMap<>();
+		loginOptions.put("username", username);
+		loginOptions.put("password", password);
+		javax.security.auth.login.Configuration.setConfiguration(new javax.security.auth.login.Configuration() {
+			
+			@Override
+			public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+				if ("hawtio".equals(name)) {
+					return new AppConfigurationEntry[] { new AppConfigurationEntry(CamelLoginModule.class.getName(),
+					        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, loginOptions) };
+				}
+				return delegate != null ? delegate.getAppConfigurationEntry(name) : null;
+			}
+		});
 		
 		String dataDir = OpenmrsUtil.getApplicationDataDirectory() + File.separator + "camel";
 		File dataDirFile = new File(dataDir);
@@ -136,12 +159,18 @@ public class CamelConfig {
 			}
 		}
 		
-		Main main = new Main();
-		main.setWar(consoleWar.getAbsolutePath());
-		main.setContextPath("/hawtio");
-		main.setPort(port); // Expose on a dedicated port to avoid conflicting with Tomcat/OpenMRS
-		main.run(false); // Run in non-blocking mode so OpenMRS continues to start up
-		// The embedded hawtio does not implement any stop logic. It will be only stopped when JVM is stopped.
-		return main;
+		// Build the Jetty Server directly so we hold the reference and can stop it
+		// on context close, preventing BindException when the Spring context refreshes.
+		Server server = new Server(new InetSocketAddress(InetAddress.getByName(host), port));
+		WebAppContext webapp = new WebAppContext();
+		webapp.setContextPath("/hawtio");
+		webapp.setWar(consoleWar.getAbsolutePath());
+		webapp.setParentLoaderPriority(true);
+		File tempDir = new File(dataDir + File.separator + "hawtio-tmp");
+		tempDir.mkdirs();
+		webapp.setTempDirectory(tempDir);
+		server.setHandler(webapp);
+		server.start();
+		return server;
 	}
 }

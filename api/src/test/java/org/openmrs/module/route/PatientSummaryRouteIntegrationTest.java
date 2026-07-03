@@ -24,6 +24,8 @@ import org.awaitility.Awaitility;
 import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openmrs.Patient;
+import org.openmrs.PatientIdentifier;
 import org.openmrs.Person;
 import org.openmrs.api.PatientService;
 import org.openmrs.event.CDCEvent;
@@ -42,6 +44,8 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @Testcontainers
 public class PatientSummaryRouteIntegrationTest extends BaseModuleContextSensitiveTest {
@@ -146,6 +150,38 @@ public class PatientSummaryRouteIntegrationTest extends BaseModuleContextSensiti
 		eventPublisher.publishEvent(event);
 		
 		assertThat(patientChangesTestListener.getEvents(), hasSize(3));
+	}
+	
+	@Test
+	public void testOnCdcEvent_patientUsesPatientIdKey() {
+		patientChangesTestListener.getEvents().clear();
+		
+		CDCEvent<Patient> event = new CDCEvent<>(Patient.class);
+		event.setOperation(CDCEvent.Operation.UPDATE);
+		Map<String, Object> pk = new HashMap<>();
+		pk.put("patient_id", 2);
+		event.setPrimaryKey(pk);
+		
+		eventPublisher.publishEvent(event);
+		
+		assertThat(patientChangesTestListener.getEvents(), hasSize(1));
+		assertEquals("2", patientChangesTestListener.getEvents().get(0).getHeaders().get("personId"));
+	}
+	
+	@Test
+	public void testOnCdcEvent_identifierDeleteWithNullNewStateDoesNotThrow() {
+		patientChangesTestListener.getEvents().clear();
+		
+		CDCEvent<PatientIdentifier> event = new CDCEvent<>(PatientIdentifier.class);
+		event.setOperation(CDCEvent.Operation.DELETE);
+		// newState is null for DELETE events; previousState carries the deleted row
+		Map<String, Object> prevState = new HashMap<>();
+		prevState.put("patient_id", 2);
+		event.setPreviousState(prevState);
+		
+		assertDoesNotThrow(() -> eventPublisher.publishEvent(event));
+		assertThat(patientChangesTestListener.getEvents(), hasSize(1));
+		assertEquals("2", patientChangesTestListener.getEvents().get(0).getHeaders().get("personId"));
 	}
 	
 }

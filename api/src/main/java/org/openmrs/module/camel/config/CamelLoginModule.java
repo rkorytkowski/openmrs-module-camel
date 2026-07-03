@@ -36,8 +36,8 @@ public class CamelLoginModule implements LoginModule {
 	        Map<String, ?> options) {
 		this.subject = subject;
 		this.callbackHandler = callbackHandler;
-		this.expectedUsername = System.getProperty("camel.hawtio.username");
-		this.expectedPassword = System.getProperty("camel.hawtio.password");
+		this.expectedUsername = (String) options.get("username");
+		this.expectedPassword = (String) options.get("password");
 	}
 	
 	@Override
