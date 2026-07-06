@@ -173,13 +173,35 @@ public class CamelConfig {
 		// resolve jakarta.servlet.Filter from that module before reaching Tomcat, while our
 		// FilterHolder resolves it through the camel module chain — two different class objects,
 		// causing FilterHolder.doStart to throw "is not a jakarta.servlet.Filter".
-		webapp.setClassLoader(new WebAppClassLoader(CamelConfig.class.getClassLoader(), webapp));
+		webapp.setClassLoader(new IsolatedWebAppClassLoader(CamelConfig.class.getClassLoader(), webapp));
 		File tempDir = new File(dataDir + File.separator + "hawtio-tmp");
 		tempDir.mkdirs();
 		webapp.setTempDirectory(tempDir);
 		server.setHandler(webapp);
 		server.start();
 		return new HawtioHandle(server, previousConfig);
+	}
+	
+	/**
+	 * WebAppClassLoader that prevents parent-classloader Log4j2Plugins.dat files from leaking into the
+	 * hawtio WAR's log4j2 plugin discovery. Without this, log4j2 inside the WAR finds
+	 * OpenmrsPropertyLookup (and standard log4j2 lookups from Artemis's bundled log4j-core) through the
+	 * parent classloader chain and throws ClassCastException because those classes implement StrLookup
+	 * from a different log4j2 JAR than what hawtio bundles.
+	 */
+	private static class IsolatedWebAppClassLoader extends WebAppClassLoader {
+		
+		IsolatedWebAppClassLoader(ClassLoader parent, WebAppContext context) throws java.io.IOException {
+			super(parent, context);
+		}
+		
+		@Override
+		public java.util.Enumeration<java.net.URL> getResources(String name) throws java.io.IOException {
+			if ("META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat".equals(name)) {
+				return findResources(name);
+			}
+			return super.getResources(name);
+		}
 	}
 	
 	/**
