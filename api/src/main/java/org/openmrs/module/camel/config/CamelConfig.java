@@ -16,7 +16,7 @@ import org.apache.camel.component.es.ElasticsearchComponent;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.spring.SpringCamelContext;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.elasticsearch.client.RestClient;
 import org.hibernate.SessionFactory;
 import org.hibernate.search.mapper.orm.Search;

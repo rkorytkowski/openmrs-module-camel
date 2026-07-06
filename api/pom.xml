@@ -53,16 +53,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.hawt</groupId>
-			<artifactId>hawtio-embedded</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
+			<groupId>org.eclipse.jetty.ee10</groupId>
+			<artifactId>jetty-ee10-webapp</artifactId>
 		</dependency>
 
 		<!-- Testcontainers for Integration Testing -->
