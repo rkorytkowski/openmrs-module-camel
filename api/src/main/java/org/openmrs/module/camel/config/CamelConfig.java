@@ -91,7 +91,7 @@ public class CamelConfig {
 	}
 	
 	@Bean(name = "hawtio", destroyMethod = "stop")
-	public Server hawtio(@Value("${camel.hawtio.enabled:false}") boolean hawtioEnabled,
+	public HawtioHandle hawtio(@Value("${camel.hawtio.enabled:false}") boolean hawtioEnabled,
 	        @Value("${camel.hawtio.username:admin}") String username, @Value("${camel.hawtio.password:}") String password,
 	        @Value("${camel.hawtio.port:10001}") int port, @Value("${camel.hawtio.host:127.0.0.1}") String host)
 	        throws Exception {
@@ -109,21 +109,21 @@ public class CamelConfig {
 		System.setProperty("hawtio.realm", "hawtio");
 		System.setProperty("hawtio.roles", "admin");
 		
-		// Install a delegating JAAS Configuration that handles only the "hawtio" realm
-		// and delegates every other realm to whatever was configured before. This avoids
-		// writing credentials to JVM system properties and does not overwrite existing
-		// JAAS configurations (e.g. from openmrs-module-artemis).
-		javax.security.auth.login.Configuration existing;
+		// Capture the existing Configuration so we can restore it on stop. Without restoring,
+		// each context refresh (triggered by any module install/start/stop) installs a new
+		// wrapper that keeps the previous one as its delegate, forming a chain that pins every
+		// prior classloader generation and causes Metaspace OOM.
+		javax.security.auth.login.Configuration previousConfig;
 		try {
-			existing = javax.security.auth.login.Configuration.getConfiguration();
+			previousConfig = javax.security.auth.login.Configuration.getConfiguration();
 		}
 		catch (Exception e) {
-			existing = null;
+			previousConfig = null;
 		}
-		final javax.security.auth.login.Configuration delegate = existing;
 		final Map<String, Object> loginOptions = new HashMap<>();
 		loginOptions.put("username", username);
 		loginOptions.put("password", password);
+		final javax.security.auth.login.Configuration delegate = previousConfig;
 		javax.security.auth.login.Configuration.setConfiguration(new javax.security.auth.login.Configuration() {
 			
 			@Override
@@ -171,6 +171,27 @@ public class CamelConfig {
 		webapp.setTempDirectory(tempDir);
 		server.setHandler(webapp);
 		server.start();
-		return server;
+		return new HawtioHandle(server, previousConfig);
+	}
+	
+	/**
+	 * Holds the Jetty server and the JAAS Configuration that was in place before hawtio was started, so
+	 * both can be restored atomically when the Spring context closes.
+	 */
+	public static class HawtioHandle {
+		
+		private final Server server;
+		
+		private final javax.security.auth.login.Configuration previousConfig;
+		
+		HawtioHandle(Server server, javax.security.auth.login.Configuration previousConfig) {
+			this.server = server;
+			this.previousConfig = previousConfig;
+		}
+		
+		public void stop() throws Exception {
+			server.stop();
+			javax.security.auth.login.Configuration.setConfiguration(previousConfig);
+		}
 	}
 }

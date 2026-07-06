@@ -56,6 +56,14 @@
 			<groupId>io.hawt</groupId>
 			<artifactId>hawtio-embedded</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+		</dependency>
 
 		<!-- Testcontainers for Integration Testing -->
 		<dependency>
