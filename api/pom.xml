@@ -113,7 +113,7 @@
 									<artifactId>hawtio-default</artifactId>
 									<version>${hawtioVersion}</version>
 									<type>war</type>
-									<outputDirectory>${project.build.directory}</outputDirectory>
+									<outputDirectory>${project.build.directory}/classes</outputDirectory>
 									<destFileName>hawtio.war</destFileName>
 								</artifactItem>
 							</artifactItems>
