@@ -67,25 +67,27 @@ public class CamelLoginModule implements LoginModule {
 	
 	@Override
 	public boolean commit() throws LoginException {
-		if (authenticated) {
-			subject.getPrincipals().add(new Principal() {
-				
-				@Override
-				public String getName() {
-					return expectedUsername;
-				}
-			});
-			// Grant the admin role expected by Hawtio
-			subject.getPrincipals().add(new Principal() {
-				
-				@Override
-				public String getName() {
-					return "admin";
-				}
-			});
-			return true;
+		if (!authenticated) {
+			return false;
 		}
-		return false;
+		// hawtio's AuthenticationConfiguration always adds io.hawt.web.auth.RolePrincipal to
+		// rolePrincipalClasses regardless of the login module used, so any role principal we add to
+		// the Subject must be an instance of that class for checkIfSubjectHasRequiredRole to accept
+		// it. Load the class from the servlet context classloader (= the hawtio WAR classloader) so
+		// the isAssignableFrom check in hawtio's Authenticator succeeds across module classloaders.
+		subject.getPrincipals().add(newPrincipal("io.hawt.web.auth.UserPrincipal", expectedUsername));
+		subject.getPrincipals().add(newPrincipal("io.hawt.web.auth.RolePrincipal", "admin"));
+		return true;
+	}
+	
+	private static Principal newPrincipal(String className, String name) throws LoginException {
+		try {
+			Class<?> cls = Thread.currentThread().getContextClassLoader().loadClass(className);
+			return (Principal) cls.getConstructor(String.class).newInstance(name);
+		}
+		catch (ReflectiveOperationException e) {
+			throw new LoginException("Cannot instantiate " + className + ": " + e.getMessage());
+		}
 	}
 	
 	@Override
