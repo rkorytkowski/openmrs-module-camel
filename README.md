@@ -45,12 +45,12 @@ You can configure the behavior of the Camel module by adding the following prope
 
 | Property | Default Value | Description |
 |----------|---------------|-------------|
-| `camel.autoDiscoverRoutes` | `true` | When true, automatically discovers and registers all Spring beans extending `RouteBuilder`. |
-| `camel.hawtio.enabled` | `false` | Enables the embedded Hawtio web console for visualizing and managing Camel routes. |
-| `camel.hawtio.host` | `127.0.0.1` | The host address the embedded Hawtio server will bind to. Defaults to loopback only. |
-| `camel.hawtio.port` | `10001` | The port the embedded Hawtio server will bind to. |
-| `camel.hawtio.username` | `admin` | The username required to log into the Hawtio console. |
-| `camel.hawtio.password` | *(required)* | The password required to log into the Hawtio console. Must be set when `camel.hawtio.enabled=true`. |
+| `camel.autoDiscoverRoutes` | `true`        | When true, automatically discovers and registers all Spring beans extending `RouteBuilder`. |
+| `camel.hawtio.enabled` | `false`       | Enables the embedded Hawtio web console for visualizing and managing Camel routes. |
+| `camel.hawtio.host` | `127.0.0.1`   | The host address the embedded Hawtio server will bind to. Defaults to loopback only. |
+| `camel.hawtio.port` | `8181`        | The port the embedded Hawtio server will bind to. |
+| `camel.hawtio.username` | `admin`       | The username required to log into the Hawtio console. |
+| `camel.hawtio.password` | *(required)*  | The password required to log into the Hawtio console. Must be set when `camel.hawtio.enabled=true`. |
 
 Hawtio Web Console
 ------------------
@@ -58,7 +58,7 @@ Hawtio is an open-source, modular web console for managing your Java application
 a standalone Hawtio instance directly from OpenMRS. 
 
 To turn it on, set `camel.hawtio.enabled=true` in your `openmrs-runtime.properties`. Once OpenMRS starts, you can 
-navigate to `http://localhost:10001/hawtio` and log in using the credentials you configured via
+navigate to `http://localhost:8181/hawtio` and log in using the credentials you configured via
 `camel.hawtio.username` (default `admin`) and `camel.hawtio.password` to view route metrics, trace messages,
 and manage your integration endpoints.
 

@@ -93,7 +93,7 @@ public class CamelConfig {
 	@Bean(name = "hawtio", destroyMethod = "stop")
 	public HawtioHandle hawtio(@Value("${camel.hawtio.enabled:false}") boolean hawtioEnabled,
 	        @Value("${camel.hawtio.username:admin}") String username, @Value("${camel.hawtio.password:}") String password,
-	        @Value("${camel.hawtio.port:10001}") int port, @Value("${camel.hawtio.host:127.0.0.1}") String host)
+	        @Value("${camel.hawtio.port:8181}") int port, @Value("${camel.hawtio.host:127.0.0.1}") String host)
 	        throws Exception {
 		
 		if (!hawtioEnabled) {

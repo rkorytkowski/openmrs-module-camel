@@ -117,7 +117,7 @@ public class PatientSummaryRouteIntegrationTest extends BaseModuleContextSensiti
 		producerTemplate.sendBodyAndHeader("jms:queue:patientChanges", "2", "personId", "2");
 		producerTemplate.sendBodyAndHeader("jms:queue:patientChanges", "2", "personId", "2");
 		producerTemplate.sendBodyAndHeader("jms:queue:patientChanges", "2", "personId", "2");
-
+		
 		String patientUuid = patientService.getPatient(2).getUuid();
 		// 2. Give Camel a moment to asynchronously route from Artemis -> Elasticsearch
 		// and query the real Elasticsearch container to ensure the document was successfully indexed
