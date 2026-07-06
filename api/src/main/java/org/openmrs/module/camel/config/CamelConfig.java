@@ -165,7 +165,6 @@ public class CamelConfig {
 		WebAppContext webapp = new WebAppContext();
 		webapp.setContextPath("/hawtio");
 		webapp.setWar(consoleWar.getAbsolutePath());
-		webapp.setParentLoaderPriority(true);
 		File tempDir = new File(dataDir + File.separator + "hawtio-tmp");
 		tempDir.mkdirs();
 		webapp.setTempDirectory(tempDir);
