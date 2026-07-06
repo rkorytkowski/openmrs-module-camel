@@ -16,6 +16,7 @@ import org.apache.camel.component.es.ElasticsearchComponent;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.spring.SpringCamelContext;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.ee10.webapp.WebAppClassLoader;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.elasticsearch.client.RestClient;
 import org.hibernate.SessionFactory;
@@ -165,6 +166,14 @@ public class CamelConfig {
 		WebAppContext webapp = new WebAppContext();
 		webapp.setContextPath("/hawtio");
 		webapp.setWar(consoleWar.getAbsolutePath());
+		// Pin the WebAppClassLoader's parent to this module's own classloader. Without this,
+		// Jetty defaults to Thread.currentThread().getContextClassLoader() which at OpenMRS
+		// startup is the OpenmrsClassLoader (a meta-loader that sees all modules). If another
+		// module (e.g. openmrs-module-artemis) also bundles Jetty, the OpenmrsClassLoader may
+		// resolve jakarta.servlet.Filter from that module before reaching Tomcat, while our
+		// FilterHolder resolves it through the camel module chain — two different class objects,
+		// causing FilterHolder.doStart to throw "is not a jakarta.servlet.Filter".
+		webapp.setClassLoader(new WebAppClassLoader(CamelConfig.class.getClassLoader(), webapp));
 		File tempDir = new File(dataDir + File.separator + "hawtio-tmp");
 		tempDir.mkdirs();
 		webapp.setTempDirectory(tempDir);
