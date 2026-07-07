@@ -29,7 +29,7 @@
 		<javaCompilerTarget>17</javaCompilerTarget>
 		<camelVersion>3.22.4</camelVersion> <!-- Upgrade to 4.x for platform 3.0.x -->
 		<artemisVersion>2.54.0</artemisVersion>
-		<hawtioVersion>3.0.2</hawtioVersion> <!-- Upgrade to 5.x for platform 3.0.x -->
+		<hawtioVersion>5.2.1</hawtioVersion>
 	</properties>
 
 	<modules>
@@ -156,14 +156,19 @@
 			</dependency>
 
 			<dependency>
-				<groupId>io.hawt</groupId>
-				<artifactId>hawtio-embedded</artifactId>
-				<version>${hawtioVersion}</version>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-server</artifactId>
+				<version>12.1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty.ee10</groupId>
+				<artifactId>jetty-ee10-webapp</artifactId>
+				<version>12.1.9</version>
 			</dependency>
 
-			<!-- 
-			Force dependencies that are already provided by OpenMRS / Tomcat 
-			to 'provided' scope so they are not packaged in the module's lib folder 
+			<!--
+			Force dependencies that are already provided by OpenMRS / Tomcat
+			to 'provided' scope so they are not packaged in the module's lib folder
 			-->
 			<dependency>
 				<groupId>org.eclipse.jetty.toolchain</groupId>

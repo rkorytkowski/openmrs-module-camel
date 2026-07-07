@@ -76,21 +76,17 @@ public class PatientSummaryRoute extends RouteBuilder {
 			String personId;
 			Map<String, Object> newState = event.getNewState();
 			
-			if (Person.class.isAssignableFrom(event.getEntityType())) {
+			if (Patient.class.isAssignableFrom(event.getEntityType())) {
+				// Patient table uses patient_id as its primary key column, not person_id
+				personId = String.valueOf(event.getPrimaryKey().get("patient_id"));
+			} else if (Person.class.isAssignableFrom(event.getEntityType())) {
 				personId = String.valueOf(event.getPrimaryKey().get("person_id"));
-			} else if (PersonName.class.isAssignableFrom(event.getEntityType())) {
-				// Extract the foreign key directly from the Debezium new state payload.
-				// OpenMRS database uses "person_id" as the column name in child tables.
-				personId = String.valueOf(newState.get("person_id"));
-			} else if (PersonAddress.class.isAssignableFrom(event.getEntityType())) {
-				personId = String.valueOf(newState.get("person_id"));
-			} else if (PatientIdentifier.class.isAssignableFrom(event.getEntityType())) {
-				// PatientIdentifier has patient_id foreign key
-				personId = newState.get("patient_id") != null ? String.valueOf(newState.get("patient_id")) : null;
-			} else if (PersonAttribute.class.isAssignableFrom(event.getEntityType())) {
-				personId = String.valueOf(newState.get("person_id"));
 			} else {
-				personId = null;
+				// Child tables: DELETE events carry no new state; fall back to the previous state.
+				// PatientIdentifier links via patient_id; all other child tables use person_id.
+				Map<String, Object> state = newState != null ? newState : event.getPreviousState();
+				String fk = PatientIdentifier.class.isAssignableFrom(event.getEntityType()) ? "patient_id" : "person_id";
+				personId = (state != null && state.get(fk) != null) ? String.valueOf(state.get(fk)) : null;
 			}
 			
 			if (personId != null) {
