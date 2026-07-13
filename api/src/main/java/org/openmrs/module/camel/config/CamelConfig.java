@@ -20,6 +20,7 @@ import org.eclipse.jetty.ee10.webapp.WebAppClassLoader;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.elasticsearch.client.RestClient;
 import org.hibernate.SessionFactory;
+import org.hibernate.search.backend.elasticsearch.ElasticsearchBackend;
 import org.hibernate.search.mapper.orm.Search;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
@@ -77,16 +78,15 @@ public class CamelConfig {
 	
 	@Bean("elasticsearch")
 	public ElasticsearchComponent elasticsearch(SessionFactory sessionFactory) {
-		// Extract the low-level Elasticsearch RestClient from the Hibernate Search backend safely
 		try {
-			RestClient restClient = Search.mapping(sessionFactory).backend().unwrap(RestClient.class);
-			
+			ElasticsearchBackend esBackend = Search.mapping(sessionFactory).backend().unwrap(ElasticsearchBackend.class);
+			RestClient restClient = esBackend.client(RestClient.class);
 			ElasticsearchComponent elasticsearchComponent = new ElasticsearchComponent();
 			elasticsearchComponent.setClient(restClient);
 			return elasticsearchComponent;
 		}
 		catch (Exception e) {
-			// Backend is not Elasticsearch (e.g., Lucene) or not initialized
+			log.warn("Elasticsearch backend not available, camel-elasticsearch component disabled: {}", e.getMessage());
 			return null;
 		}
 	}
@@ -149,14 +149,11 @@ public class CamelConfig {
 		}
 		
 		File consoleWar = new File(webDirFile, "hawtio.war");
-		if (!consoleWar.exists()) {
-			try (InputStream is = getClass().getResourceAsStream("/hawtio.war")) {
-				if (is != null) {
-					Files.copy(is, consoleWar.toPath(), StandardCopyOption.REPLACE_EXISTING);
-				} else {
-					log.warn(
-					    "hawtio.war not found in classpath. Hawtio Web Console may fail to start or return a 404 error.");
-				}
+		try (InputStream is = getClass().getResourceAsStream("/hawtio.war")) {
+			if (is != null) {
+				Files.copy(is, consoleWar.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			} else {
+				log.warn("hawtio.war not found in classpath. Hawtio Web Console may fail to start or return a 404 error.");
 			}
 		}
 		

@@ -16,6 +16,8 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.Principal;
 import java.util.Map;
 
@@ -53,8 +55,8 @@ public class CamelLoginModule implements LoginModule {
 			char[] pass = ((PasswordCallback) callbacks[1]).getPassword();
 			String password = pass == null ? "" : new String(pass);
 			
-			if (expectedUsername != null && expectedUsername.equals(user) && expectedPassword != null
-			        && expectedPassword.equals(password)) {
+			if (expectedUsername != null && expectedUsername.equals(user) && expectedPassword != null && MessageDigest
+			        .isEqual(expectedPassword.getBytes(StandardCharsets.UTF_8), password.getBytes(StandardCharsets.UTF_8))) {
 				authenticated = true;
 				return true;
 			}

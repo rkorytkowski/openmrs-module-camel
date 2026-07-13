@@ -115,6 +115,17 @@
 						<groupId>org.springframework</groupId>
 						<artifactId>*</artifactId>
 					</exclusion>
+					<!--
+					Excluding this so the module shares core's javax.jms-api instead of bundling
+					its own copy. Without this exclusion the module's javax.jms.ConnectionFactory is
+					a different class object than the one the broker provides through core's classloader,
+					so @Autowired ConnectionFactory in CamelConfig.jms() never matches and the jms
+					Camel component is left unwired (issues 9 + 11 in openmrs-core#6289).
+					-->
+					<exclusion>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-jms_2.0_spec</artifactId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 			<dependency>
