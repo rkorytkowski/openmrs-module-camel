@@ -25,7 +25,7 @@ import org.hibernate.search.mapper.orm.Search;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -66,8 +66,16 @@ public class CamelConfig {
 	}
 	
 	@Bean("jms")
-	public JmsComponent jms(@Autowired(required = false) ConnectionFactory connectionFactory) {
+	public JmsComponent jms(ObjectProvider<ConnectionFactory> connectionFactories) {
+		// getIfUnique returns the sole candidate, or the @Primary one among several, and null
+		// otherwise. A plain single-valued injection point would fail context refresh with
+		// NoUniqueBeanDefinitionException when a broker module exposes two factories without
+		// marking one @Primary, taking the whole server down with it.
+		ConnectionFactory connectionFactory = connectionFactories.getIfUnique();
 		if (connectionFactory == null) {
+			if (connectionFactories.stream().count() > 0) {
+				log.warn("Multiple ConnectionFactory beans found and none is @Primary; jms component disabled");
+			}
 			return null;
 		}
 		

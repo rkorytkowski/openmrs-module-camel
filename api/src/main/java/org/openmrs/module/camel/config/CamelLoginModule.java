@@ -55,8 +55,13 @@ public class CamelLoginModule implements LoginModule {
 			char[] pass = ((PasswordCallback) callbacks[1]).getPassword();
 			String password = pass == null ? "" : new String(pass);
 			
-			if (expectedUsername != null && expectedUsername.equals(user) && expectedPassword != null && MessageDigest
-			        .isEqual(expectedPassword.getBytes(StandardCharsets.UTF_8), password.getBytes(StandardCharsets.UTF_8))) {
+			// Evaluate both comparisons before branching so a wrong username does not skip the
+			// password compare, which would leak the configured username through response timing.
+			boolean userOk = expectedUsername != null && user != null && MessageDigest
+			        .isEqual(expectedUsername.getBytes(StandardCharsets.UTF_8), user.getBytes(StandardCharsets.UTF_8));
+			boolean passOk = expectedPassword != null && MessageDigest
+			        .isEqual(expectedPassword.getBytes(StandardCharsets.UTF_8), password.getBytes(StandardCharsets.UTF_8));
+			if (userOk && passOk) {
 				authenticated = true;
 				return true;
 			}

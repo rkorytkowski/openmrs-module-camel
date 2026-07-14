@@ -266,6 +266,39 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>ban-bundled-jms-spec</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<bannedDependencies>
+									<message>
+										JMS spec classes must be loaded from OpenMRS core's classloader; bundling a copy
+										in the omod splits javax.jms.ConnectionFactory into two class objects and breaks
+										jms component wiring (openmrs-core#6289 item 11). Exclude the offending
+										transitive dependency instead.
+									</message>
+									<excludes>
+										<exclude>org.apache.geronimo.specs:geronimo-jms*:*:*:compile</exclude>
+										<exclude>org.apache.geronimo.specs:geronimo-jms*:*:*:runtime</exclude>
+										<exclude>javax.jms:*:*:*:compile</exclude>
+										<exclude>javax.jms:*:*:*:runtime</exclude>
+										<exclude>jakarta.jms:*:*:*:compile</exclude>
+										<exclude>jakarta.jms:*:*:*:runtime</exclude>
+									</excludes>
+								</bannedDependencies>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>

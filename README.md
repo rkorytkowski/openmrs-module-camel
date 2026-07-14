@@ -34,7 +34,8 @@ Available Components
 This module comes pre-packaged with several essential Camel components:
 * **camel-core & camel-spring**: The foundational routing engine and Spring context integration.
 * **camel-jms**: Used for asynchronous messaging. The `jms` endpoint is automatically configured and available if 
-* a `javax.jms.ConnectionFactory` is present in the OpenMRS Spring context.
+* exactly one `javax.jms.ConnectionFactory` bean is present in the OpenMRS Spring context (or, when several are 
+* present, one of them is marked `@Primary`). Otherwise the component is disabled and a warning is logged.
 * **camel-jackson**: Provides JSON data binding and POJO transformation capabilities.
 * **camel-elasticsearch**: Enables communicating with Elasticsearch. The `elasticsearch` endpoint is automatically 
 * configured using the low-level `RestClient` from OpenMRS's Hibernate Search setup (if available).
